@@ -56,20 +56,18 @@
 		 * of different data points can be done in code which is often more natural for display names, legends, line colors etc
 		 */
 		 // add presentation logic for 'data' object using optional data arguments
-		 var data = $.get('http://127.0.0.1:1337/data', {data: 'Pierre Karashchuk'});
-		 data["displayNames"] = ["channel"];
-		 data["colors"] = ["green"];
-		 data["scale"] = "pow";
+		 var data = $.getJSON('http://localhost:1337/data');
+		 var colors = ['black','brown','green','red','orange','darkred','darkgreen','purple'];
+		 console.log(data[0]);
 
 		 // create graph now that we've added presentation config
-		var l1 = new LineGraph({containerId: 'graph1', data: data});
-		var l2 = new LineGraph({containerId: 'graph2', data: data});
-		var l3 = new LineGraph({containerId: 'graph3', data: data});
-		var l4 = new LineGraph({containerId: 'graph4', data: data});
-		var l5 = new LineGraph({containerId: 'graph5', data: data});
-		var l6 = new LineGraph({containerId: 'graph6', data: data});
-		var l7 = new LineGraph({containerId: 'graph7', data: data});
-		var l8 = new LineGraph({containerId: 'graph8', data: data});
+		var graphs = new Array(8);
+		for (var i = 0; i < 8; i++) {
+			graphs[i] = new LineGraph({containerId: 'graph'+Number(i+1), data: data[i]});
+			data[i]["displayNames"] = ["channel " + Number(i + 1)];
+		 	data[i]["colors"] = [colors[i]];
+			data[i]["scale"] = "pow";
+		}
 		
 	setInterval(function() {
 		/*

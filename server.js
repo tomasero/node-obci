@@ -6,8 +6,8 @@ var serialport = require('serialport');
 var binary = require('binary');
 var http = require('http');
 
-// port = '/dev/tty.usbmodem1411';
-port = '/dev/ttyACM0';
+port = '/dev/tty.usbmodem1411';
+//port = '/dev/ttyACM0';
 
 var SerialPort = serialport.SerialPort;
 var serialport = new SerialPort(port, {
