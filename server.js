@@ -43,7 +43,8 @@ function formatData() {
 
 app.get('/data', function(req, res){
     var data = formatData();
-    res.setHeader('Content-Type', 'application/json');
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header('Content-Type', 'application/json');
     res.end(JSON.stringify(data));
 });
 
