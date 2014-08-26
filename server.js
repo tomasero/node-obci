@@ -1,6 +1,5 @@
 var serialport = require('serialport'); 
 var SerialPort = serialport.SerialPort;
-var d3 = require('d3');
 // port = '/dev/tty.usbmodem1411';
 port = '/dev/tty.usbmodem1411';
 var serialport = new SerialPort(port, {
