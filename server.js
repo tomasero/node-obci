@@ -45,7 +45,7 @@ function callback(req, res) {
 
 function addPacket(packet) {
     
-    console.log(packet);
+    //console.log(packet);
     var vars = binary.parse(packet)
         .word8lu('start')
         .word8lu('n_bytes')
@@ -66,7 +66,7 @@ function addPacket(packet) {
             raw_data[i-1].push(vars['channel_' + i] / Math.pow(2, 23))
             vars['channel_' + i] /= Math.pow(2, 23)
         }
-        console.log(vars);
+        //console.log(vars);
     }
 }
 
