@@ -1,11 +1,13 @@
+var express = require('express');
+var app = express();
 
 
 var serialport = require('serialport');
 var binary = require('binary');
 var http = require('http');
 
-port = '/dev/tty.usbmodem1411';
-//port = '/dev/ttyACM0';
+// port = '/dev/tty.usbmodem1411';
+port = '/dev/ttyACM0';
 
 var SerialPort = serialport.SerialPort;
 var serialport = new SerialPort(port, {
@@ -38,6 +40,15 @@ function formatData() {
     }
     return out;
 }
+
+app.get('/data', function(req, res){
+    var data = formatData();
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(data));
+});
+
+app.listen(1337);
+
 
 function callback(req, res) {
     req.pipe(formatData()).pipe(res);
