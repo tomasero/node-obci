@@ -1,6 +1,6 @@
-var serialport = require("serialport");
+var serialport = require('serialport');
 var binary = require('binary');
-
+var http = require('http');
 
 // port = '/dev/tty.usbmodem1411';
 port = '/dev/ttyACM0';
@@ -21,6 +21,25 @@ for (var i=0; i<raw_data.length; i++) {
 }
 
 prev_data = new Buffer(0);
+
+function formatData() {
+    var out = new Array(8);
+    for(var i=0; i<8; i++) {
+        var name = '' + (i+1);
+        out[i] = {
+            "start": 10000,
+            "end": 20000,
+            "step": 1/250.0,
+            "names": [name],
+            "values": [ raw_data[i] ]
+        };
+    }
+    return out;
+}
+
+function callback(req, res) {
+    req.pipe(formatData()).pipe(res);
+}
 
 function addPacket(packet) {
     
