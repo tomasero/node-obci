@@ -117,7 +117,7 @@ function LineGraph(argsMap) {
 	/**
 	 * This does a full refresh of the data:
 	 * - x-axis will slide to new range
-	 * - lines will change in place
+n	 * - lines will change in place
 	 */
 	this.updateData = function(newData) {
 		// data is being replaced, not appended so we re-assign 'data'

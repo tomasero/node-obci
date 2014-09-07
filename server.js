@@ -6,18 +6,10 @@ var serialport = require('serialport');
 var binary = require('binary');
 var http = require('http');
 
-port = '/dev/tty.usbmodem1411';
-//port = '/dev/ttyACM0';
+var generate_data = true;
 
-var SerialPort = serialport.SerialPort;
-var serialport = new SerialPort(port, {
-    baudRate: 115200,
-    dataBits: 8,
-    parity: 'none',
-    stopBits: 1,
-    flowControl: false,
-    parser: serialport.parsers.raw    
-});
+var port = '/dev/tty.usbmodem1411';
+//port = '/dev/ttyACM0';
 
 var raw_data = new Array(8);
 for (var i=0; i<raw_data.length; i++) {
@@ -26,16 +18,21 @@ for (var i=0; i<raw_data.length; i++) {
 
 prev_data = new Buffer(0);
 
+var start_time = new Date().getTime();
+var data_times = new Array();
+
 function formatData() {
     var out = new Array(8);
+    var curr_time = new Date().getTime();
+    // console.log(data_times);
     for(var i=0; i<8; i++) {
         var name = '' + (i+1);
         out[i] = {
-            "start": 10000,
-            "end": 20000,
-            "step": 1/250.0,
-            "names": [name],
-            "values": [ raw_data[i] ]
+            "start": data_times[0],
+            "end": curr_time,
+            "step": 4,
+            "name": name,
+            "value": raw_data[i]
         };
     }
     return out;
@@ -47,12 +44,26 @@ app.get('/data', function(req, res){
     res.header('Content-Type', 'application/json');
     res.end(JSON.stringify(data));
 });
+app.use(express.static(__dirname + '/static'));
+
 
 app.listen(1337);
 
+function pushData(d) {
+    var t = new Date().getTime();
+    data_times.push(t);
+    
+    for(var i=0; i<8; i++) {
+        raw_data[i].push(d[i]);
+    }
 
-function callback(req, res) {
-    req.pipe(formatData()).pipe(res);
+    if(raw_data[0].length >= 2000) {
+        data_times.splice(0, 1);
+
+        for(var i=0; i<8; i++) {
+            raw_data[i].splice(0, 1);
+        }
+    }
 }
 
 function addPacket(packet) {
@@ -73,10 +84,16 @@ function addPacket(packet) {
         .word8lu('end')
         .vars
 
+    d = new Array(8);
+    for(var i=0; i<8; i++) {
+        d[i] = vars['channel_' + (i+1)] / Math.pow(2, 23);
+    }
+        
     if(vars.start == 0xA0 && vars.end == 0xC0) {
+        pushData(d);
         for(var i=1; i<=8; i++) {
             raw_data[i-1].push(vars['channel_' + i] / Math.pow(2, 23))
-            vars['channel_' + i] /= Math.pow(2, 23)
+            // vars['channel_' + i] /= Math.pow(2, 23)
         }
         //console.log(vars);
     }
@@ -102,18 +119,57 @@ function parseData(data) {
     prev_data = data;
 }
 
-serialport.on('open', function(){
-    console.log('Serial Port Opend');
-    serialport.on('data', function(data){
-        // console.log(prev_data);
-        // console.log(data);
-        
-        data = Buffer.concat([prev_data, data]);
-        // console.log(data);
-        parseData(data);
+// generates a random number from standard Gaussian N(0,1)
+function randn() {
+    return ((Math.random() + Math.random() + Math.random() +
+             Math.random() + Math.random() + Math.random()) - 3) * Math.sqrt(2);
+}
+
+// generates N random standard Gaussian numbers 
+function nrandn(n) {
+    var out = new Array(n);
+    for(var i=0; i<n; i++) {
+        out[i] = randn() + 5;
+    }
+    return out;
+}
+
+if(!generate_data) {
+    var SerialPort = serialport.SerialPort;
+    var serialport = new SerialPort(port, {
+        baudRate: 115200,
+        dataBits: 8,
+        parity: 'none',
+        stopBits: 1,
+        flowControl: false,
+        parser: serialport.parsers.raw    
     });
-    
-    setTimeout(function() {
-        serialport.write('b');
-    }, 5000);
-});
+
+
+    serialport.on('open', function(){
+        console.log('Serial Port Opend');
+        serialport.on('data', function(data){
+            // console.log(prev_data);
+            // console.log(data);
+            
+            data = Buffer.concat([prev_data, data]);
+            // console.log(data);
+            parseData(data);
+        });
+        
+        setTimeout(function() {
+            serialport.write('b');
+        }, 5000);
+    });
+} else {
+    setInterval(function() {
+        pushData(nrandn(8));
+        pushData(nrandn(8));
+        pushData(nrandn(8));
+        pushData(nrandn(8));
+    }, 16);
+}
+
+
+
+
